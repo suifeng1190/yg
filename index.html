@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>tmy_de_yaogan</title>
+<link rel="preload" as="image" href="assets/earth_day_2048.jpg" />
+<script src="assets/three.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="toolbar"><button id="printBtn">打印 / 导出 PDF</button><button id="autoBtn">自动播放</button></div>
+<button class="next-btn" id="nextBtn">下一页 →</button>
+<nav class="nav" aria-label="页面导航"></nav>
+<div class="cloud-scene" aria-hidden="true"><div class="cloud-sheet cloud-ink"></div><div class="cloud-sheet cloud-photo"></div></div>
+<button class="prev-btn" id="prevBtn">← 上一页</button>
+<main class="deck" id="deck">
+<section class="slide" data-title="封面">
+  <div class="grid2">
+    <div>
+      <div class="eyebrow">REMOTE SENSING × EVERYDAY LIFE</div>
+      <div class="title">城市里的树荫，<br><span style="color:var(--orange)">公平吗？</span></div>
+      <p class="subtitle">从遥感图像看见城市里不容易被注意到的高温风险，以及它背后的“热不平等”。</p>
+      <div style="margin-top:30px"><span class="chip">课堂汇报演示稿</span><span class="chip">示意数据</span><span class="chip">约5分钟</span></div>
+    </div>
+    <div class="hero-orbit">
+      <canvas id="heroDither" class="hero-dither" aria-hidden="true"></canvas>
+      <div class="orbit" id="heroOrbit">
+        <div class="hero-earth" id="heroEarth">
+          <div class="hero-continents" id="heroContinents"></div>
+          <div class="hero-earth-glow"></div>
+        </div>
+        <div class="hero-sat" id="heroSat">🛰️</div>
+        <span class="orbit-label ol1">热红外</span>
+        <span class="orbit-label ol2">绿地</span>
+        <span class="orbit-label ol3">地表温度</span>
+      </div>
+      <div class="hero-caption" id="heroCaption">正在扫描地表…</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-title="问题">
+  <div class="eyebrow">01 / 一个容易被忽略的问题</div>
+  <div class="quote" style="margin:28px 0 44px">同样是夏天，<span>为什么有人走在树荫下，</span><br>有人却一直走在“发烫的地面”上？</div>
+  <div class="grid3">
+    <div class="card"><div class="big-number">看不见</div><h3>热风险藏在脚下</h3><p>天气预报告诉我们空气温度，却很少告诉我们：不同街区的地面吸热程度差多少。</p></div>
+    <div class="card"><div class="big-number">不平均</div><h3>降温资源有差异</h3><p>绿地、水体、树荫和遮阳设施，并不会平均分布在每个社区。</p></div>
+    <div class="card"><div class="big-number">很重要</div><h3>高温影响真实生活</h3><p>老人、儿童、环卫工人和外卖骑手，往往更长时间暴露在高温环境中。</p></div>
+  </div>
+  <div class="small" style="margin-top:28px">核心问题：城市的“降温资源”，是不是也应该被当作一种公共资源？</div>
+</section>
+
+<section class="slide" data-title="遥感怎么做">
+  <div class="eyebrow">02 / 遥感能看见什么</div>
+  <h2 style="font-size:clamp(30px,4vw,56px);margin:16px 0 32px">把“体感很热”变成一张可以比较的地图</h2>
+  <div class="flow">
+    <div class="step"><b>01 · 采集</b><p>卫星获取可见光、近红外和热红外信息。</p></div>
+    <div class="step"><b>02 · 识别</b><p>区分建筑、道路、植被、水体等地表类型。</p></div>
+    <div class="step"><b>03 · 反演</b><p>估算地表温度，得到热环境空间分布。</p></div>
+    <div class="step"><b>04 · 对比</b><p>叠加人口和公共设施，寻找被忽视的高风险区域。</p></div>
+  </div>
+  <div class="grid2" style="margin-top:34px">
+    <div class="card"><h3>三个关键指标</h3><div class="stat-row"><strong>地表温度 LST</strong><div class="bar" style="flex:1"><span class="b1" style="width:82%"></span></div><em>高温</em></div><div class="stat-row"><strong>植被指数 NDVI</strong><div class="bar" style="flex:1"><span class="b3" style="width:38%"></span></div><em>偏低</em></div><div class="stat-row"><strong>不透水面比例</strong><div class="bar" style="flex:1"><span class="b2" style="width:71%"></span></div><em>偏高</em></div><div class="axis"><span>低</span><span>高</span></div></div>
+    <div class="card"><h3>为什么适合这个题目？</h3><p>遥感的优势不是“拍一张漂亮的卫星图”，而是把分散、难以感知的城市差异，放在同一张图上比较。</p><div style="margin-top:16px"><span class="chip">大范围</span><span class="chip">可重复</span><span class="chip">可比较</span></div></div>
+  </div>
+</section>
+
+<section class="slide" data-title="互动地图">
+  <div class="eyebrow">03 / 一张示意遥感图</div>
+  <div class="map-wrap">
+    <div class="map"><div class="map-grid" id="mapGrid"></div><div class="map-key"><span><i class="legend-dot" style="background:#45a56f"></i>较凉</span><span><i class="legend-dot" style="background:#d09a43"></i>中等</span><span><i class="legend-dot" style="background:#e75d4f"></i>较热</span><span><i class="legend-dot" style="background:#2d986a"></i>绿地</span></div></div>
+    <div class="card"><h3>绿地覆盖与热风险</h3><p>调整绿地覆盖率，观察示意区域热风险的变化，理解"降温资源"与热风险的关系。</p><div class="slider-box"><div class="slider-head"><span>绿地覆盖率</span><strong id="greenValue">18%</strong></div><input id="greenSlider" class="range" type="range" min="8" max="40" value="18" /></div><div style="margin-top:28px"><div class="risk" id="riskValue">72<small>示意热风险指数 / 100</small></div></div></div>
+  </div>
+</section>
+
+<section class="slide" data-title="建模演示">
+  <div class="eyebrow">04 / 建模演示</div>
+  <h2 style="font-size:clamp(30px,4vw,56px);margin:16px 0 18px">从轨道到卫星视角</h2>
+  <div class="sat-demo-grid">
+    <div class="space-stage" id="spaceStage" aria-label="卫星三维演示场景">
+      <div class="stars"></div><div class="orbit-ring"></div><div class="earth"><div class="earth-glow"></div><div class="continent c1"></div><div class="continent c2"></div><div class="continent c3"></div></div>
+      <div class="satellite" id="dragSat" role="button" tabindex="0" aria-label="卫星"><span>🛰️</span></div>
+      <div class="target-zone" id="targetZone"><span>⌾</span></div>
+      <div class="axis-label">轨道视角：<strong id="angleValue">18°</strong></div>
+    </div>
+    <div class="card sat-control"><h3>卫星任务控制台</h3><p>通过调整轨道角度，让卫星进入观测窗口，获取目标区域的热红外影像。</p><div class="status-line"><span class="status-dot" id="satStatusDot"></span><strong id="satStatus">等待调整轨道</strong></div><div class="small" style="margin-top:16px">当前轨道角度</div><div class="meter"><span id="angleMeter" style="width:18%"></span></div><button class="cta" id="enterSatView" style="margin-top:22px" disabled>进入卫星视角 →</button></div>
+  </div>
+  <div class="sat-view" id="satView" aria-hidden="true"><div class="sat-view-head"><span><b>卫星视角 / 热红外成像</b><small id="regionSubtitle">RIO DE JANEIRO · LAND SURFACE TEMPERATURE</small></span><button class="toolbar-btn" id="backToOrbit">返回轨道</button></div><div class="region-picker" id="regionPicker"><button class="region-btn active" data-region="rio">里约热内卢</button><button class="region-btn" data-region="lahore">拉合尔</button><button class="region-btn" data-region="nyc">纽约</button></div><div class="sat-view-grid"><img id="regionImage" src="assets/rio_heat.png" alt="NASA里约热内卢地表温度遥感图"><div class="globe3d-wrap"><div id="globe3d"></div></div></div><div class="sat-view-caption" id="regionCaption">真实遥感图：里约热内卢北部地表温度，NASA Earth Observatory，基于 ECOSTRESS 与 Landsat 数据。<br><a href="https://science.nasa.gov/earth/earth-observatory/climate-proofing-rio-de-janeiro-90687/" target="_blank" rel="noreferrer" style="color:var(--cyan)">查看 NASA 来源说明</a></div><div class="sat-view-read"><b>读图方法：</b>深蓝区域相对较凉，常对应森林、水体或大型绿地；浅紫、粉白区域相对较热，常对应机场、港口、高速路和密集建成区。图中显示的是地表温度，不等同于空气温度。</div></div>
+</section>
+
+<section class="slide" data-title="比较">
+  <div class="eyebrow">05 / 隐形差异</div>
+  <h2 style="font-size:clamp(30px,4vw,56px);margin:16px 0 28px">不是所有人，都拥有同样的“降温条件”</h2>
+  <div class="grid2">
+    <div class="card"><h3>不同地区的热环境</h3><p class="small">选择地区查看真实遥感画面，点击当前画面展开解释。</p><div id="flexCarousel" class="flex-carousel" aria-label="不同地区热环境图片"><div class="carousel-fallback">正在载入遥感案例…</div></div><div class="carousel-detail" id="carouselDetail"><b>选择一张地区图像</b><span>这里会显示地区、数据类型和讲解重点。</span></div></div>
+    <div class="card"><h3>3D街区热量模型</h3><p class="small">立体街区中，柱子越高代表示意热风险越高。</p><div class="city3d-wrap" id="city3dWrap"><div id="city3d"><div class="city3d-fallback">正在准备 3D 街区模型…</div></div></div></div>
+  </div>
+</section>
+
+<section class="slide" data-title="谁受影响">
+  <div class="eyebrow">06 / 为什么和我们有关</div>
+  <h2 style="font-size:clamp(30px,4vw,56px);margin:16px 0 32px">“热”会沿着城市空间，落到具体的人身上</h2>
+  <div class="tree-layout">
+    <div class="tree-chart" id="impactTree" aria-label="热风险影响人群树状图">
+      <button class="tree-root" data-tree="root">城市热风险<span>谁更容易被热影响？</span></button>
+      <div class="tree-line trunk"></div>
+      <div class="tree-branches">
+        <button class="tree-node" data-tree="vulnerable"><span class="tree-icon">👵</span><b>老人和儿童</b><small>脆弱性更高</small></button>
+        <button class="tree-node" data-tree="workers"><span class="tree-icon">🛵</span><b>户外劳动者</b><small>暴露时间更长</small></button>
+        <button class="tree-node" data-tree="community"><span class="tree-icon">🏘️</span><b>高密度社区</b><small>降温空间更少</small></button>
+      </div>
+    </div>
+    <div class="tree-detail card" id="treeDetail"><div class="tree-detail-kicker">影响人群</div><h3 id="treeTitle">先看一张关系图</h3><p id="treeText">热风险不是一个抽象数字，它会沿着城市空间，落到具体的人身上。</p><div class="tree-tags" id="treeTags"><span class="chip">空间</span><span class="chip">暴露</span><span class="chip">健康</span></div></div>
+  </div>
+  <div class="card tree-conclusion" style="margin-top:24px;border-color:rgba(255,180,84,.35)"><p style="font-size:22px;color:var(--ink);margin:0">当我们把热红外图像和人的日常路线叠在一起，<span style="color:var(--orange)">一个原本“不显眼”的公共问题，就变得清晰了。</span></p></div>
+</section>
+
+<section class="slide" data-title="行动">
+  <div class="eyebrow">07 / 从地图到行动</div>
+  <h2 style="font-size:clamp(30px,4vw,56px);margin:16px 0 28px">遥感的价值，最后要回到城市怎么改变</h2>
+  <div class="grid2">
+    <div class="card"><h3>三个可执行的方向</h3><div class="checklist"><div class="check"><i>01</i><p><b style="color:var(--ink)">优先补树荫：</b>在高温、高人流、低绿地的路段增加连续遮阳。</p></div><div class="check"><i>02</i><p><b style="color:var(--ink)">建立冷却节点：</b>把口袋公园、饮水点、公共休息点布置在热风险高的区域。</p></div><div class="check"><i>03</i><p><b style="color:var(--ink)">持续监测：</b>用多时相遥感图像观察改造后是否真的变凉。</p></div></div></div>
+    <div class="card"><h3>我们真正想问的</h3><p class="quote" style="font-size:28px;margin:0">一座“凉快”的城市，应该只靠个人寻找树荫，还是应该让每个人都更容易获得树荫？</p><div style="margin-top:22px"><span class="chip">技术问题</span><span class="chip">公共治理</span><span class="chip">日常生活</span></div></div>
+  </div>
+</section>
+
+<section class="slide" data-title="提问">
+  <div class="eyebrow">09 / 现场提问</div>
+  <h2 style="font-size:clamp(30px,4vw,56px);margin:16px 0 24px">常见问题</h2>
+  <div class="qa-layout">
+    <div class="qa-tree" id="qaTree">
+      <button class="qa-root" data-qa="root">现场提问</button>
+      <div class="qa-branches">
+        <div class="qa-branch">
+          <button class="qa-node" data-qa="data">数据可信度</button>
+          <div class="qa-leaf"><button class="qa-q" data-qa="q1">这些温度数据是真的吗？</button></div>
+        </div>
+        <div class="qa-branch">
+          <button class="qa-node" data-qa="theory">遥感原理</button>
+          <div class="qa-leaf"><button class="qa-q" data-qa="q2">LST 和气温是一回事吗？</button></div>
+          <div class="qa-leaf"><button class="qa-q" data-qa="q3">为什么卫星能看出温度？</button></div>
+          <div class="qa-leaf"><button class="qa-q" data-qa="q4">为什么同城温差这么大？</button></div>
+        </div>
+        <div class="qa-branch">
+          <button class="qa-node" data-qa="value">应用与价值</button>
+          <div class="qa-leaf"><button class="qa-q" data-qa="q5">遥感真能帮城市降温吗？</button></div>
+          <div class="qa-leaf"><button class="qa-q" data-qa="q6">"热不平等"是否被夸大？</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="qa-detail card" id="qaDetail">
+      <div class="tree-detail-kicker">问题解答</div>
+      <h3 id="qaTitle">选择一个问题</h3>
+      <p id="qaText">现场提问围绕数据可信度、遥感原理与应用价值展开。</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-title="结尾">
+  <div class="eyebrow">10 / 结论</div>
+  <div class="end-mark">◎</div>
+  <h2 class="title" style="font-size:clamp(34px,5vw,72px);max-width:920px">看见温度差异，<br><span style="color:var(--cyan)">也看见城市里的公平问题。</span></h2>
+  <p class="subtitle">遥感让我们发现：有些重要的问题，并不会主动出现在视线里。它们需要被测量、被比较，然后被纳入城市决策。</p>
+  <div style="margin-top:30px"><span class="chip">谢谢聆听</span><span class="chip">欢迎提问</span></div>
+</section>
+</main>
+  <script src="script.js"></script>
+</body>
+</html>
